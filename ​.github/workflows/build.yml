@@ -1,3 +1,4 @@
+
 name: CPLn-Build
 
 on: [push]
@@ -24,22 +25,21 @@ jobs:
       - name: Compile
         shell: msys2 {0}
         run: |
-          # 1. 今の場所にあるファイルを全部リストアップしてログに出す
-          echo "--- 現在のファイル一覧 ---"
-          ls -F
-          
-          # 2. 「main」で始まる .c ファイルを自動で探して変数に入れる
-          # これで 大文字小文字の違いや、余計な空白があっても捕まえられます
-          TARGET_FILE=$(ls main*.c | head -n 1)
-          echo "コンパイル対象: $TARGET_FILE"
-
-          # 3. 道具の場所を確認
-          PY_FLAGS=$(pkg-config --cflags --libs python3)
+          # 道具の場所を確認して変数に入れる
+          PY_CFLAGS=$(pkg-config --cflags python3)
+          PY_LIBS=$(pkg-config --libs python3)
           SDL_FLAGS=$(pkg-config --cflags --libs sdl2 SDL2_ttf)
 
-
-          # 4. コンパイル実行
-          gcc "$TARGET_FILE" -o CPLn.exe \
-            $PY_FLAGS \
+          # まとめてコンパイル（順番が大事！）
+          gcc maincpln.c -o CPLn.exe \
+            $PY_CFLAGS \
             $SDL_FLAGS \
+            $PY_LIBS \
             -lws2_32
+
+      # 3. 完成したEXEを保存する
+      - name: Upload EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: CPLn-Result
+          path: CPLn.exe
