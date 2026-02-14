@@ -1,0 +1,19 @@
+      - name: Install Dependencies
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-SDL2
+            mingw-w64-x86_64-SDL2_ttf
+            mingw-w64-x86_64-python
+            pkg-config
+
+      - name: Compile
+        shell: msys2 {0}
+        run: |
+          # -I. を追加して、同じフォルダの pyconfig.h を認識させる
+          gcc maincpln.c -o CPLn.exe \
+            -I. \
+            $(pkg-config --cflags --libs sdl2 SDL2_ttf python3) \
+            -lws2_32
