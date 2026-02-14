@@ -1,0 +1,14 @@
+      - name: Compile
+        shell: msys2 {0}
+        run: |
+          # 変数に代入（1行ずつ実行されるように整理）
+          PY_CFLAGS=$(pkg-config --cflags python3)
+          PY_LIBS=$(pkg-config --libs python3)
+          SDL_FLAGS=$(pkg-config --cflags --libs sdl2 SDL2_ttf)
+
+          # まとめてコンパイル
+          gcc maincpln.c -o CPLn.exe \
+            $PY_CFLAGS \
+            $SDL_FLAGS \
+            $PY_LIBS \
+            -lws2_32
