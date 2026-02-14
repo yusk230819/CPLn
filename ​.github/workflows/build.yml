@@ -1,0 +1,45 @@
+name: CPLn-Build
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. 道具を全部入れる（ここが抜けているとエラーになります！）
+      - name: Install Dependencies
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-SDL2
+            mingw-w64-x86_64-SDL2_ttf
+            mingw-w64-x86_64-python
+            pkg-config
+
+      # 2. コンパイルする
+      - name: Compile
+        shell: msys2 {0}
+        run: |
+          # 1. 今の場所にあるファイルを全部リストアップしてログに出す
+          echo "--- 現在のファイル一覧 ---"
+          ls -F
+          
+          # 2. 「main」で始まる .c ファイルを自動で探して変数に入れる
+          # これで 大文字小文字の違いや、余計な空白があっても捕まえられます
+          TARGET_FILE=$(ls main*.c | head -n 1)
+          echo "コンパイル対象: $TARGET_FILE"
+
+          # 3. 道具の場所を確認
+          PY_FLAGS=$(pkg-config --cflags --libs python3)
+          SDL_FLAGS=$(pkg-config --cflags --libs sdl2 SDL2_ttf)
+
+
+          # 4. コンパイル実行
+          gcc "$TARGET_FILE" -o CPLn.exe \
+            $PY_FLAGS \
+            $SDL_FLAGS \
+            -lws2_32
