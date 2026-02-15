@@ -4,32 +4,20 @@ on: [push]
 
 jobs:
   build:
-    runs-on: windows-latest
-
+    runs-on: ubuntu-latest
+    
     steps:
       - uses: actions/checkout@v4
 
-      # 🔥 これが必須
-      - name: Setup MSYS2
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: MINGW64
-          update: true
-          install: >
-            mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-python
-            mingw-w64-x86_64-pkg-config
-            mingw-w64-x86_64-SDL2
-            mingw-w64-x86_64-SDL2_ttf
-
-      - name: Build
-        shell: msys2 {0}
+      - name: Install
         run: |
-          PY_INC=$(pkg-config --cflags python3)
-          SDL_INC=$(pkg-config --cflags sdl2 SDL2_ttf)
+          sudo apt-get update
+          sudo apt-get install -y python3-dev libsdl2-dev libsdl2-ttf-dev pkg-config
 
-          PY_LIB=$(pkg-config --libs python3)
-          SDL_LIB=$(pkg-config --libs sdl2 SDL2_ttf)
-
-          gcc *.c -o CPLn.exe $PY_INC $SDL_INC $PY_LIB $SDL_LIB -lws2_32
-
+      - name: Compile
+        run: |
+          # 道具（includeとlib）の場所をpkg-configに一発で探させる
+          INC_LIB=$(pkg-config --cflags --libs python3 sdl2 SDL2_ttf)
+          
+          # 実行！
+          gcc *.c -o CPLn $INC_LIB -lm
