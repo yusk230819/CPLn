@@ -18,13 +18,14 @@ jobs:
       # 2. 変数を作って、全部並べてコンパイルする
       - name: Compile
         run: |
-          # Python はそのままでOK
+          # 1. Python はそのままでOK
           PY_INC=$(pkg-config --cflags python3)
           PY_LIB=$(pkg-config --libs python3)
 
-          # SDL2 は sdl2 (小文字)、SDL2_ttf は大文字混じりに修正
+          # 2. SDL2_ttf を「大文字」に直す（ここが最重要！）
+          # 修正前: sdl2_ttf -> 修正後: SDL2_ttf
           SDL_INC=$(pkg-config --cflags sdl2 SDL2_ttf)
           SDL_LIB=$(pkg-config --libs sdl2 SDL2_ttf)
 
-          # コンパイル実行
+          # 3. あなたの言う通り、設計図(INC)と本体(LIB)を全部並べる
           gcc *.c -o CPLn $PY_INC $SDL_INC $PY_LIB $SDL_LIB -lm
