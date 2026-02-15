@@ -26,9 +26,23 @@ jobs:
           pacman -S --noconfirm mingw-w64-x86_64-python mingw-w64-x86_64-pkg-config
           pacman -S --noconfirm mingw-w64-x86_64-sdl2 mingw-w64-x86_64-sdl2_ttf
 
+      - name: Install Dependencies
+        shell: msys2 {0}
+        run: |
+          # Python開発用パッケージとpkg-configを確実にインストール
+          pacman -S --noconfirm mingw-w64-x86_64-python mingw-w64-x86_64-pkg-config
+          pacman -S --noconfirm mingw-w64-x86_64-sdl2 mingw-w64-x86_64-sdl2_ttf
+
       - name: Compile
         shell: msys2 {0}
         run: |
+          # pkg-configでPythonとSDL2のパスを抽出
+          PYTHON_FLAGS=$(pkg-config --cflags --libs python3)
+          SDL_FLAGS=$(pkg-config --cflags --libs sdl2 SDL2_ttf)
+          
+          # 取得したフラグを渡してコンパイル
+          gcc maincpln.c -o CPLn.exe $PYTHON_FLAGS $SDL_FLAGS -lws2_32
+
           # pkg-configを使って、ライブラリの場所（パス）を自動取得
           PY_FLAGS=$(pkg-config --cflags --libs python3)
           SDL_FLAGS=$(pkg-config --cflags --libs sdl2 SDL2_ttf)
