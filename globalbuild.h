@@ -65,6 +65,10 @@ typedef struct {
 /* ==== CPLn binding system ==== */
 
 typedef struct {
+        int enabled;
+    } gm; 
+
+typedef struct {
     char word[64];
     int ip;              /* 実行座標（instruction pointer） */
 } CPLnBinding;
