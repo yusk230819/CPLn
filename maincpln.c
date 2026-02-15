@@ -58,7 +58,6 @@ int main(int argc, char* argv[]) {
 
     return 0;
 
-    CPLnEngine engine;
     // ... 初期化処理 (以前のコード通り) ...
 
     if (argc > 1) {
