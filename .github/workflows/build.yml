@@ -21,20 +21,21 @@ jobs:
           pacman -S --noconfirm mingw-w64-x86_64-sdl2 mingw-w64-x86_64-sdl
 
 
-      - name: Compile       
+      - name: Compile
         shell: msys2 {0}
         run: |
-          # 1. Pythonの「設計図(include)」と「部品(libs)」の場所を特定
+          # 1. あなたの言う通り、includeフォルダの場所（設計図）を取得
           PY_INC=$(pkg-config --cflags python3)
-          PY_LIB=$(pkg-config --libs python3)
-
-          # 2. SDL2の「設計図(include)」と「部品(libs)」の場所を特定
           SDL_INC=$(pkg-config --cflags sdl2 SDL2_ttf)
+
+          # 2. あなたの言う通り、lib/dllの場所（部品本体）を取得
+          PY_LIB=$(pkg-config --libs python3)
           SDL_LIB=$(pkg-config --libs sdl2 SDL2_ttf)
 
-          # 3. $PY_FLAGS のような嘘の変数は使わず、特定したパスを全部並べる
-          # これで「Python.h」が見つかり、dllのリンクも通ります
+          # 3. $PY_FLAGS なんて変数は使いません。
+          # 作った変数を全部、直接 gcc に叩き込みます。
           gcc *.c -o CPLn.exe $PY_INC $SDL_INC $PY_LIB $SDL_LIB -lws2_32
+
 
 
 
