@@ -4,29 +4,27 @@ on: [push]
 
 jobs:
   build:
-    # 1. ここを Windows から Linux (Ubuntu) に変更
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Linux環境を指定
     
     steps:
       - uses: actions/checkout@v4
 
-      # 2. Linux(Ubuntu)用の「道具箱」をインストール
+      # 1. あなたの言う「include」や「lib」の中身をインストールする
       - name: Install Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y python3-dev libsdl2-dev libsdl2-ttf-dev pkg-config
 
-      # 3. あなたが言った通り、include と lib をしっかり指定してコンパイル
+      # 2. 変数を作って、全部並べてコンパイルする
       - name: Compile
         run: |
-          # includeフォルダの場所を取得
+          # includeフォルダの場所 (-I)
           PY_INC=$(pkg-config --cflags python3)
           SDL_INC=$(pkg-config --cflags sdl2 sdl2_ttf)
 
-          # lib/部品本体（.soファイル）の場所を取得
+          # 部品本体（lib/.so）の場所 (-L, -l)
           PY_LIB=$(pkg-config --libs python3)
           SDL_LIB=$(pkg-config --libs sdl2 sdl2_ttf)
 
-          # Linux なので .exe はいりません。-lws2_32 も不要。
-          # 全部の道具を並べてコンパイル
+          # Windows専用の -lws2_32 は絶対に書かない。.exeも不要。
           gcc *.c -o CPLn $PY_INC $SDL_INC $PY_LIB $SDL_LIB -lm
