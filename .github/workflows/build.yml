@@ -24,16 +24,10 @@ jobs:
       - name: Compile
         shell: msys2 {0}
         run: |
-          # pkg-configでPythonとSDL2のパスを抽出
-          PYTHON_FLAGS=$(pkg-config --cflags --libs python3)
-          SDL_FLAGS=$(pkg-config --cflags --libs sdl2 SDL2_ttf)
-          
-          # 取得したフラグを渡してコンパイル
-          gcc maincpln.c -o CPLn.exe $PYTHON_FLAGS $SDL_FLAGS -lws2_32
-
-          # pkg-configを使って、ライブラリの場所（パス）を自動取得
+          # 名前を「PY_FLAGS」に統一する
           PY_FLAGS=$(pkg-config --cflags --libs python3)
           SDL_FLAGS=$(pkg-config --cflags --libs sdl2 SDL2_ttf)
           
-          # コンパイル実行（PythonとSDL2の情報をすべて載せる）
-          gcc maincpln.c -o CPLn.exe $PY_FLAGS $SDL_FLAGS -lws2_32
+          # これで $PY_FLAGS に値が入ります
+          gcc *.c -o CPLn.exe $PY_FLAGS $SDL_FLAGS -lws2_32
+
