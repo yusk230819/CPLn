@@ -72,7 +72,7 @@ if (eng->grouping == 2) {
 
 
         switch(cmd){
-case '=': {実メモリ制御モード
+case '=': {//実メモリ制御モード
     eng->real_mem_mode = !eng->real_mem_mode;
     if (eng->real_mem_mode) {
         printf("[実メモリモード: ON]\n");
@@ -83,7 +83,7 @@ case '=': {実メモリ制御モード
 }
 
             case '!': printf("\n[プログラム終了]\n"); return;//プログラムの最後のピリオドみたいな感じ
-            case 'C': eng->coord_mode=1; break;//座標モードもう必要なさそうなので消す予定    
+            case 'C': eng->coord_mode=1; break;    
             move_coord(eng, cmd);
     break;
             case ':': {//所属
