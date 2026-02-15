@@ -19,10 +19,22 @@ jobs:
           pacman -S --noconfirm mingw-w64-x86_64-python # MSYS2環境にPython開発セットを入れる
       # --- ここまで追加 ---
 
+      - name: Install Dependencies
+        shell: msys2 {0}
+        run: |
+          # Python本体と、pkg-configというパス探しツールをインストール
+          pacman -S --noconfirm mingw-w64-x86_64-python mingw-w64-x86_64-pkg-config
+          pacman -S --noconfirm mingw-w64-x86_64-sdl2 mingw-w64-x86_64-sdl2_ttf
+
       - name: Compile
         shell: msys2 {0}
         run: |
-          # Pythonのパスを自動で取得してフラグにセットする
-          PY_FLAGS=$(pkg-config --cflags --libs python3)
-          gcc maincpln.c -o CPLn.exe $PY_FLAGS -lws2_32
+          # pkg-configを使って、Pythonの場所を自動で特定して変数に入れる
+          PYTHON_INC=$(pkg-config --cflags python3)
+          PYTHON_LIB=$(pkg-config --libs python3)
+          SDL_FLAGS=$(pkg-config --cflags --libs sdl2 SDL2_ttf)
+
+          # 特定したパスを使ってコンパイル
+          gcc maincpln.c -o CPLn.exe $PYTHON_INC $SDL_FLAGS $PYTHON_LIB -lws2_32
+
 
