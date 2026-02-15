@@ -32,7 +32,7 @@ SOFTWARE.
 #include <stdint.h>
 #include <math.h>
 #include "SDL_ttf.h"  // <SDL2/SDL_ttf.h> から変更
-#include <winsock2.h>
+#include "winsock2.h"
 
 
 #ifndef CPLN_ENGINE_STRUCT
