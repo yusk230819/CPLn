@@ -5,27 +5,31 @@ on: [push]
 jobs:
   build:
     runs-on: windows-latest
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Dependencies
-        shell: msys2 {0}
-        run: |
-          # 必要な道具をMSYS2(MinGW64)環境にインストール
-          pacman -S --noconfirm mingw-w64-x86_64-python mingw-w64-x86_64-pkg-config \
-                               mingw-w64-x86_64-sdl2 mingw-w64-x86_64-sdl2_ttf
+      # 🔥 これが必須
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-python
+            mingw-w64-x86_64-pkg-config
+            mingw-w64-x86_64-SDL2
+            mingw-w64-x86_64-SDL2_ttf
 
-      - name: Compile
+      - name: Build
         shell: msys2 {0}
         run: |
-          # 1. includeフォルダの場所を取得
           PY_INC=$(pkg-config --cflags python3)
           SDL_INC=$(pkg-config --cflags sdl2 SDL2_ttf)
 
-          # 2. lib/部品本体の場所を取得
           PY_LIB=$(pkg-config --libs python3)
           SDL_LIB=$(pkg-config --libs sdl2 SDL2_ttf)
 
-          # 3. あなたが作った変数を全部並べる。
-          # $PY_FLAGS のような嘘の変数は一切使いません。
           gcc *.c -o CPLn.exe $PY_INC $SDL_INC $PY_LIB $SDL_LIB -lws2_32
+
