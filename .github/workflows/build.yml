@@ -28,6 +28,7 @@ jobs:
           PY_FLAGS=$(pkg-config --cflags --libs python3)
           SDL_FLAGS=$(pkg-config --cflags --libs sdl2 SDL2_ttf)
           
-          # これで $PY_FLAGS に値が入ります
-          gcc *.c -o CPLn.exe $PY_FLAGS $SDL_FLAGS -lws2_32
+          # $PY_FLAGS は消して、あなたが作った変数を並べる
+          gcc *.c -o CPLn.exe $PY_CFLAGS $PY_LIBS $SDL_FLAGS -lws2_32
+
 
