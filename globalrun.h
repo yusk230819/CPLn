@@ -761,23 +761,6 @@ case '?': {//もし何何が何なら
     }
     break;
 }
-case '{': { // ローカルスコープ開始
-    VMState save = { eng->main_mem, eng->sub_mem, eng->x, eng->y };
-    int depth = 1, j = i + 1, start = j;
-    while (j < len && depth > 0) {
-        if (code[j] == '{') depth++;
-        if (code[j] == '}') depth--;
-        j++;
-    }
-    char* sub = strndup(code + start, j - start - 1);
-    run(eng, sub); // 再帰実行
-    free(sub);
-    // 状態を復元
-    eng->main_mem = save.m; eng->sub_mem = save.s;
-    eng->x = save.x; eng->y = save.y;
-    i = j - 1;
-    break;
-}
 
 case 'E': { // 座標実行 (Eval)
     char* target_code = get_coord_val(eng);
