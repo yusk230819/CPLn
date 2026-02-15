@@ -18,13 +18,13 @@ jobs:
       # 2. 変数を作って、全部並べてコンパイルする
       - name: Compile
         run: |
-          # includeフォルダの場所 (-I)
+          # Python はそのままでOK
           PY_INC=$(pkg-config --cflags python3)
-          SDL_INC=$(pkg-config --cflags sdl2 sdl2_ttf)
-
-          # 部品本体（lib/.so）の場所 (-L, -l)
           PY_LIB=$(pkg-config --libs python3)
-          SDL_LIB=$(pkg-config --libs sdl2 sdl2_ttf)
 
-          # Windows専用の -lws2_32 は絶対に書かない。.exeも不要。
+          # SDL2 は sdl2 (小文字)、SDL2_ttf は大文字混じりに修正
+          SDL_INC=$(pkg-config --cflags sdl2 SDL2_ttf)
+          SDL_LIB=$(pkg-config --libs sdl2 SDL2_ttf)
+
+          # コンパイル実行
           gcc *.c -o CPLn $PY_INC $SDL_INC $PY_LIB $SDL_LIB -lm
