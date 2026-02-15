@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+include <stdio.h>
+
     static inline void put_pixel(CPLnEngine* eng, int x, int y, uint32_t color){
     if (x < 0 || y < 0 ||
         x >= eng->fb.width ||
