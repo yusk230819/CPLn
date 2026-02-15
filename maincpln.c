@@ -1,4 +1,4 @@
-// main.c
+// maincpln.c
 #include <stdio.h>
 #include "globalbuild.h"      // build.h を読み込む（ここで構造体が定義される）
 #include "globalrun.h"  // globalrun.h を読み込む（二重定義防止が効く）
