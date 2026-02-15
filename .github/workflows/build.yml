@@ -31,11 +31,8 @@ jobs:
           SDL_FLAGS=$(pkg-config --cflags --libs sdl2 SDL2_ttf)
 
           # まとめてコンパイル（順番が大事！）
-          gcc maincpln.c -o CPLn.exe \
-            $PY_CFLAGS \
-            $SDL_FLAGS \
-            $PY_LIBS \
-            -lws2_32
+          gcc *.c -o CPLn.exe $PY_FLAGS $SDL_FLAGS -lws2_32
+
 
       # 3. 完成したEXEを保存する
       - name: Upload EXE
