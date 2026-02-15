@@ -27,7 +27,7 @@ SOFTWARE.
 #include <string.h>
 #include <ctype.h>
 #define HAVE_ROUND
-#include <python.h> //Python呼び出し用 
+#include <python.h> //python呼び出し用 
 #include "SDL.h"      // <SDL2/SDL.h> から変更
 #include <stdint.h>
 #include <math.h>
