@@ -949,10 +949,9 @@ render_all_groups(&eng);
 if (eng->gm.enabled) {
     render_gm(eng);
     eng->gm.enabled = 0; // 次フレームに持ち越さない
-
 }
-
-present(&eng);
+}
+    present(&eng);
 SDL_Delay(16); // 約60FPS
 
 } // run
