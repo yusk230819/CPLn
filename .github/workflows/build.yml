@@ -21,14 +21,14 @@ jobs:
           pacman -S --noconfirm mingw-w64-x86_64-sdl2 mingw-w64-x86_64-sdl
 
 
-      - name: Compile
+           - name: Compile
         shell: msys2 {0}
         run: |
-          # 名前を「PY_FLAGS」に統一する
-          PY_FLAGS=$(pkg-config --cflags --libs python3)
+          PY_CFLAGS=$(pkg-config --cflags python3)
+          PY_LIBS=$(pkg-config --libs python3)
           SDL_FLAGS=$(pkg-config --cflags --libs sdl2 SDL2_ttf)
           
-          # $PY_FLAGS は消して、あなたが作った変数を並べる
+          # あなたが用意した「設計図の場所」と「部品の場所」を gcc に教える
           gcc *.c -o CPLn.exe $PY_CFLAGS $PY_LIBS $SDL_FLAGS -lws2_32
 
 
