@@ -22,6 +22,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+    static inline void put_pixel(CPLnEngine* eng, int x, int y, uint32_t color){
+    if (x < 0 || y < 0 ||
+        x >= eng->fb.width ||
+        y >= eng->fb.height)
+        return;
+
+    eng->fb.pixels[y * eng->fb.width + x] = color;
+    eng->fb.dirty = 1;
+    }
 
 // ===== 実行エンジン =====
 void run(CPLnEngine* eng, const char* code){
@@ -940,15 +949,7 @@ render_all_groups(&eng);
 if (eng->gm.enabled) {
     render_gm(eng);
     eng->gm.enabled = 0; // 次フレームに持ち越さない
-    static inline void put_pixel(CPLnEngine* eng, int x, int y, uint32_t color){
-    if (x < 0 || y < 0 ||
-        x >= eng->fb.width ||
-        y >= eng->fb.height)
-        return;
 
-    eng->fb.pixels[y * eng->fb.width + x] = color;
-    eng->fb.dirty = 1;
-}
 }
 
 present(&eng);
