@@ -13,11 +13,32 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y python3-dev libsdl2-dev libsdl2-ttf-dev pkg-config
+          
+      - name: Debug and Compile
+        run: |
+          # 1. 物理的にどこに python.h があるか探してログに出す
+          echo "--- Searching for python.h ---"
+          find /usr/include -name "Python.h" -o -name "python.h"
+          
+          # 2. pkg-config が何を言っているかログに出す
+          echo "--- pkg-config flags ---"
+          pkg-config --cflags --libs python3
+          
+          # 3. gcc の「探し方」を可視化して実行
+          # -v を足すと、gccがどこのフォルダをどの順番で覗いたか全部わかります
+          INC_LIB=$(pkg-config --cflags --libs python3 sdl2 SDL2_ttf)
+          gcc -v *.c -o CPLn $INC_LIB -lm
+
 
       - name: Compile
         run: |
-          # 道具（includeとlib）の場所をpkg-configに一発で探させる
-          INC_LIB=$(pkg-config --cflags --libs python3 sdl2 SDL2_ttf)
+          # 1. Pythonの場所を pkg-config に頼らず直接指定
+          # Ubuntuの標準的なPython3のincludeパスを全部ぶち込む
+          PY_INC="-I/usr/include/python3.10 -I/usr/include/python3.11 -I/usr/include/python3.12"
           
-          # 実行！
-          gcc *.c -o CPLn $INC_LIB -lm
+          # 2. SDLはpkg-configが優秀なのでそのまま使う
+          SDL_INC=$(pkg-config --cflags sdl2 SDL2_ttf)
+          SDL_LIB=$(pkg-config --libs python3 sdl2 SDL2_ttf)
+          
+          # 3. 実行
+          gcc *.c -o CPLn $PY_INC $SDL_INC $SDL_LIB -lm
