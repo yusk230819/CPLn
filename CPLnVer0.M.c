@@ -26,7 +26,7 @@ SOFTWARE.
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <Python.h> //Python呼び出し用 
+#include <python.h> //Python呼び出し用 
 #include <SDL2/SDL.h> // グラフィックス用
 #include <stdint.h>
 #include <math.h> // 冒頭に追加
@@ -40,6 +40,14 @@ SOFTWARE.
     #include <unistd.h>
 #endif
 
+// これを `#include` のすぐ下に貼る
+typedef struct Coord Coord;
+typedef struct GMState GMState;
+typedef struct CPLnGroup CPLnGroup;
+typedef struct CPLnEngine CPLnEngine;
+typedef struct ASTNode ASTNode;
+typedef struct Lexer Lexer;
+typedef void (*CPLnCommand)(struct CPLnEngine* eng, const char* code, int* pos);
 
 #define MAX_COORD 60
 #define MAX_STR 512
@@ -76,6 +84,36 @@ typedef struct {
     char action[MAX_GROUP_CODE];
 } CPLnRule;
 
+typedef enum {
+    TOK_NUM,
+    TOK_VAR,
+    TOK_PLUS,
+    TOK_MINUS,
+    TOK_MUL,
+    TOK_DIV,
+    TOK_MOD,
+    TOK_LPAREN,
+    TOK_RPAREN,
+    TOK_END,
+    TOK_ERR
+} cplnTokenType;
+
+typedef enum {
+    AST_NUM,        // 数値
+    AST_VAR,        // 変数 (M, S, X, Y)
+    AST_ADD,        // +
+    AST_SUB,        // -
+    AST_MUL,        // *
+    AST_DIV,        // /
+    AST_MOD,        // %
+    AST_NEG,        // 単項 
+    AST_INVALID,     // エラー用
+    AST_MAIN_MEM,
+    AST_SUB_MEM,
+    AST_SIN,
+    AST_COS, // ← 高度な数学用に追加
+}ASTType;
+
 uint32_t framebuffer[FB_MAX_H][FB_MAX_W];
 
 typedef struct {
@@ -94,6 +132,76 @@ typedef struct {
     int max_groups;    // 使用するグループ数
     int enabled;       // Clock ON/OFF
 } CPLnClock;
+
+typedef struct {
+    char value[MAX_STR];
+    int is_set;
+    char group[MAX_STR];
+} Coord;
+
+typedef struct {
+    int enabled;
+
+    int screen_w;
+    int screen_h;
+
+    int sel_x1, sel_y1;
+    int sel_x2, sel_y2;
+
+    unsigned int color; // 0xRRGGBB
+
+
+
+renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+texture = SDL_CreateTexture(
+    renderer,
+    SDL_PIXELFORMAT_ARGB8888,
+    SDL_TEXTUREACCESS_STREAMING,
+    FB_MAX_W,
+    FB_MAX_H
+);
+} GMState;
+
+    // === 追加部分 ===
+    SDL_Window* window;
+    SDL_Renderer* renderer;
+    SDL_Init(SDL_INIT_VIDEO);
+
+window = SDL_CreateWindow(
+    "CPLn",
+    SDL_WINDOWPOS_CENTERED,
+    SDL_WINDOWPOS_CENTERED,
+    800, 600,
+    SDL_WINDOW_SHOWN
+);
+
+// グローバル状態に時間経過モードフラグ
+typedef struct {
+    int enabled;      // 現在時間経過モードか
+    double delay_sec; // D(n) で設定された秒数
+} TimeMode;
+
+typedef struct {
+    char name[32];
+    char code[MAX_GROUP_CODE];
+    int visible;   // 1=表示, 0=非表示
+} CPLnGroup;
+
+typedef struct ASTNode ASTNode;
+typedef struct Lexer Lexer;
+
+typedef struct {
+    TokenType type;
+    int value;
+    char var;
+} Token;
+
+typedef struct {
+    const char* src;
+    int pos;
+    Token current;
+} Lexer;
 
     typedef struct {
     int data_stack[DATA_STACK_SIZE];
@@ -125,6 +233,7 @@ char z_loop_code[MAX_GROUP_CODE];
 int sock;                // 通信用のソケット
     struct sockaddr_in addr; // 接続先アドレス
     int net_connected;      // 接続フラグ(0:未接続, 1:接続済)
+    CPLnCommand table[256]; // 文字解析テーブル
 } CPLnEngine;
 
 typedef struct {
@@ -157,31 +266,7 @@ static int cpln_resolve_binding(const char *word)
     return -1;  /* 未束縛 */
 }
 
-typedef struct {
-    char name[32];
-    char code[MAX_GROUP_CODE];
-    int visible;   // 1=表示, 0=非表示
-} CPLnGroup;
 
-typedef enum {
-    AST_NUM,        // 数値
-    AST_VAR,        // 変数 (M, S, X, Y)
-    AST_ADD,        // +
-    AST_SUB,        // -
-    AST_MUL,        // *
-    AST_DIV,        // /
-    AST_MOD,        // %
-    AST_NEG,        // 単項 
-    AST_INVALID     // エラー用
-    AST_MAIN_MEM
-    AST_SUB_MEM,
-    AST_SIN
-    AST_COS // ← 高度な数学用に追加
-}ASTType;
-
-
-typedef struct ASTNode ASTNode;
-typedef struct Lexer Lexer;
 
 // ===== AST parser prototypes =====
 ASTNode* parse_expr(Lexer* lx);
@@ -191,61 +276,7 @@ ASTNode* parse_primary(Lexer* lx);
 void next_token(Lexer* lx);
 
 
-typedef enum {
-    TOK_NUM,
-    TOK_VAR,
-    TOK_PLUS,
-    TOK_MINUS,
-    TOK_MUL,
-    TOK_DIV,
-    TOK_MOD,
-    TOK_LPAREN,
-    TOK_RPAREN,
-    TOK_END,
-    TOK_ERR
-} TokenType;
 
-typedef struct {
-    int enabled;
-
-    int screen_w;
-    int screen_h;
-
-    int sel_x1, sel_y1;
-    int sel_x2, sel_y2;
-
-    unsigned int color; // 0xRRGGBB
-
-    // === 追加部分 ===
-    SDL_Window* window;
-    SDL_Renderer* renderer;
-    SDL_Init(SDL_INIT_VIDEO);
-
-window = SDL_CreateWindow(
-    "CPLn",
-    SDL_WINDOWPOS_CENTERED,
-    SDL_WINDOWPOS_CENTERED,
-    800, 600,
-    SDL_WINDOW_SHOWN
-);
-
-
-renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-
-texture = SDL_CreateTexture(
-    renderer,
-    SDL_PIXELFORMAT_ARGB8888,
-    SDL_TEXTUREACCESS_STREAMING,
-    FB_MAX_W,
-    FB_MAX_H
-);
-} GMState;
-
-// グローバル状態に時間経過モードフラグ
-typedef struct {
-    int enabled;      // 現在時間経過モードか
-    double delay_sec; // D(n) で設定された秒数
-} TimeMode;
 
 TimeMode tmode = {0, 0};
 
@@ -275,32 +306,6 @@ void time_mode_wait() {
 #endif
     }
 }
-
-
-typedef struct {
-    TokenType type;
-    int value;
-    char var;
-} Token;
-
-typedef struct {
-    const char* src;
-    int pos;
-    Token current;
-} Lexer;
-
-
-
-typedef struct {
-    char value[MAX_STR];
-    int is_set;
-    char group[MAX_STR];
-} Coord;
-
-
-
-
-
 
 ASTNode* new_node(ASTType t, ASTNode* l, ASTNode* r) {
     ASTNode* n = malloc(sizeof(ASTNode));
@@ -355,7 +360,7 @@ ASTNode* parse_expr(Lexer* lx) {
     while (lx->current.type==TOK_PLUS ||
            lx->current.type==TOK_MINUS) {
 
-        TokenType op = lx->current.type;
+        cplnTokenType op = lx->current.type;
         next_token(lx);
 
         n = new_node(op==TOK_PLUS?AST_ADD:AST_SUB,
@@ -369,12 +374,13 @@ ASTNode* parse_expr(Lexer* lx) {
 if (strcmp(token, "\\") == 0) {
     if (cpln_bind_mode == 0) {
         cpln_bind_mode = 1;   /* 束縛開始 */
-    } else {
+    } else{ 
         /* 束縛確定 */
         cpln_add_binding(cpln_bind_word, ip);
         cpln_bind_mode = 0;
-    }
+
     return;   /* 他の処理はしない */
+}
 }
 
 ASTNode* parse_term(Lexer* lx) {
@@ -985,7 +991,15 @@ void render_realtime(CPLnEngine* eng) {
     SDL_Delay(20); 
 }
     
-
+void init_cmd_table(CPLnEngine* eng) {
+    // これを書かないと、テーブルの中身は NULL のままです
+    eng->table['='] = cmd_equal; 
+    eng->table['!'] = cmd_exit;
+    eng->table['X'] = cmd_X;
+    eng->table['Y'] = cmd_Y;
+    eng->table['#'] = 
+    
+}
 
 char* get_coord_val(CPLnEngine* eng){
     if(eng->coords[eng->x][eng->y].is_set) return eng->coords[eng->x][eng->y].value;
@@ -1082,12 +1096,6 @@ while (system_running) {
     apply_time_mode(&eng);
 }
 
-// ===== 実行エンジン =====
-void run(CPLnEngine* eng, const char* code){
-int len = strlen(code);
-// Clock駆動（1命令 = 1 tick）
-clock_step(eng);
-    for (int i = 0; i < len; i++) {
     
 // ===== グループ開始 =====
 if (code[i] == '#' && eng->grouping == 0) {//グループ化をする
@@ -1099,7 +1107,7 @@ if (code[i] == '#' && eng->grouping == 0) {//グループ化をする
 
         // ===== グループ収集中 =====
         if (eng->grouping == 1) {
-            if (code[i] == ']') {
+            if (code[i] == ';') {
                 eng->grouping = 2;
             } else {
                   if (eng->group_buf_pos < MAX_GROUP_CODE - 1) {
@@ -1118,9 +1126,7 @@ if (eng->grouping == 2) {
 
 }
 
-
-        switch(cmd){
-case '=': {実メモリ制御モード
+case '=': {//実メモリ制御モード
     eng->real_mem_mode = !eng->real_mem_mode;
     if (eng->real_mem_mode) {
         printf("[実メモリモード: ON]\n");
@@ -2018,5 +2024,3 @@ if (eng->gm.enabled) {
 
 present(&eng);
 SDL_Delay(16); // 約60FPS
-
-} // run
