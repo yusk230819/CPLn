@@ -1,3 +1,6 @@
 X0Y0:D(_hello world_)A
-X0Y0:\B\
-B:>
+X0Y0:\a\
+a:>\b\
+b
+X0Y0:D(_hello world_):>A
+X0Y0:E!
